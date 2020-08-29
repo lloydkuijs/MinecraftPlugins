@@ -1,0 +1,9 @@
+name: DeathSwap
+version: 1
+author: Lloyd Kuijs
+main: io.github.lloydkuijs.DeathSwap
+api-version: 1.13
+commands:
+  deathswap:
+    description: starts the deathswap gamemode
+    usage: /<command>
