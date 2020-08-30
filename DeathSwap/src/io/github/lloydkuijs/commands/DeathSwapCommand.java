@@ -54,7 +54,7 @@ public class DeathSwapCommand implements CommandExecutor {
 
         SpawnPlayers(1000);
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.g, new Runnable() {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(_main, new Runnable() {
             @Override
             public void run() {
 

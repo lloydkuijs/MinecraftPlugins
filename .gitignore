@@ -25,3 +25,6 @@ hs_err_pid*
 /HelloPlugin/build/
 
 .idea
+
+# exclude out folder, we only want to create jars for plugins
+/*/out/

@@ -23,7 +23,7 @@ public class Countdown extends BukkitRunnable {
 
     @Override
     public void run() {
-        if(_currentCountMs == )
+        if(_currentCountMs == 0)
         if(_topic != null)
             _plugin.getServer().broadcastMessage(String.format("%s Starting the countdown", _topic));
         else
