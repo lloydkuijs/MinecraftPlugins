@@ -1,7 +1,7 @@
-name: DeathSwap
+name: Main
 version: 1
 author: Lloyd Kuijs
-main: io.github.lloydkuijs.DeathSwap
+main: io.github.lloydkuijs.Main
 api-version: 1.13
 commands:
   deathswap:
