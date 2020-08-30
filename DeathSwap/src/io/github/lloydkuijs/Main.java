@@ -1,13 +1,15 @@
 package io.github.lloydkuijs;
 
-import io.github.lloydkuijs.commands.DeathSwapCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        this.getCommand("deathSwap").setExecutor(new DeathSwapCommand(this));
+        var deathSwap = new DeathSwapGameMode(this);
+
+        this.getCommand("deathSwap").setExecutor(deathSwap);
+        getServer().getPluginManager().registerEvents(deathSwap, this);
     }
 
     @Override
