@@ -5,6 +5,7 @@ import io.github.lloydkuijs.tasks.CountdownEnd;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,12 +14,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.jar.Attributes;
 
 import io.github.lloydkuijs.Main;
+
+import static org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH;
 
 public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
     private final Main _main;
@@ -26,6 +31,8 @@ public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
     private World _world;
     private boolean _gameInProgress;
     private int counter = 10;
+    private Location _startLocation;
+    private int _id;
 
     public DeathSwapGameMode(Main main) {
         _main = main;
@@ -39,15 +46,16 @@ public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
 
             if(counter <= 0) {
                 _gameInProgress = true;
-                counter = 60;
+                counter = 240;
                 StartGame();
             }
         }
         else {
             if(counter <= 0) {
+
                 TeleportPlayers();
 
-                counter = 60;
+                counter = 240;
             }
 
             if(counter <= 10) {
@@ -63,6 +71,29 @@ public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
 
         if(_players.contains(player)) {
             _main.getServer().broadcastMessage(String.format("%s has died", player.getDisplayName()));
+            _players.remove(player);
+
+            if(_players.size() == 1) {
+                _main.getServer().broadcastMessage(String.format("%s has won the game!", _players.get(0).getDisplayName()));
+                Bukkit.getScheduler().cancelTask(_id);
+                _gameInProgress = false;
+            }
+        }
+    }
+
+    @EventHandler (priority = EventPriority.HIGHEST)
+    public void onDisconnect(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+
+        if(_players.contains(player)) {
+            _main.getServer().broadcastMessage(String.format("%s has disconnected", player.getDisplayName()));
+            _players.remove(player);
+
+            if(_players.size() == 1) {
+                _main.getServer().broadcastMessage(String.format("%s has won the game!", _players.get(0).getDisplayName()));
+                Bukkit.getScheduler().cancelTask(_id);
+                _gameInProgress = false;
+            }
         }
     }
 
@@ -87,25 +118,26 @@ public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
         _gameInProgress = true;
         _players = _world.getPlayers();
 
-        SpawnPlayers(1000);
+        for (Player player : _players) {
+            player.getInventory().clear();
+            player.setHealth(20);
+            player.setFoodLevel(20);
+            player.setSaturation(20);
+        }
+
+        SpawnPlayers(6000);
     }
 
     private void SpawnPlayers(int blockDistance) {
-        Vector location = new Vector(0, 0, 0);
-        int size = _players.size() * blockDistance;
-
-        // Top position of play area
-        location.setX(location.getX() - (size / 2));
-        location.setX(location.getY() - (size / 2));
-
         Random random = new Random();
 
         for (Player player : _players) {
 
-            int randomX = (int) location.getX() + random.nextInt(size);
-            int randomZ = (int) location.getZ() + random.nextInt(size);
+            int randomX = (int) _startLocation.getX() - random.nextInt(blockDistance);
+            int randomZ = (int) _startLocation.getZ() - random.nextInt(blockDistance);
 
-            Location playerLocation = new Location(_world, randomX, _world.getHighestBlockYAt(randomX, randomZ) + 1, randomZ);
+            _main.getServer().broadcastMessage(String.format("X: %d, Y: %d", randomX, randomZ));
+            Location playerLocation = new Location(_world, randomX, _world.getHighestBlockYAt(randomX, randomZ) + 4, randomZ);
 
             player.teleport(playerLocation);
         }
@@ -117,10 +149,12 @@ public class DeathSwapGameMode implements CommandExecutor, Runnable, Listener {
             return false;
         }
 
-        _world = ((Player)sender).getWorld();
+        Player player = (Player)sender;
+        _world = player.getWorld();
+        _startLocation = player.getLocation();
         _main.getServer().broadcastMessage( "Get ready! DeathSwap is about to begin!");
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(_main, this, 0, 20L);
+        _id = Bukkit.getScheduler().scheduleSyncRepeatingTask(_main, this, 0, 20L);
 
         return true;
     }
